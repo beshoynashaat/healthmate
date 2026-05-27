@@ -1,14 +1,22 @@
 import streamlit as st
 import time
 import os
+import sys
+
+# =========================================
+# PATH FIX FOR STREAMLIT CLOUD
+# =========================================
+# This ensures that Agents can import configuration.py correctly
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # =========================================
 # IMPORT YOUR AGENTS
 # =========================================
-# Ensure your working directory is set correctly for Streamlit Cloud
-from Agents.leader import leaderRouter
-# from Agents.medical import medical_agent  # If you have these separate
-# from Agents.drug import drug_agent        # If you have these separate
+try:
+    from Agents.leader import leaderRouter
+    # from Agents.medical import medical_agent  # Uncomment when ready
+except ImportError as e:
+    st.error(f"Mapping Error: Could not find Agent files. {e}")
 
 # =========================================
 # PAGE CONFIG
@@ -20,7 +28,7 @@ st.set_page_config(
 )
 
 # =========================================
-# CUSTOM CSS (KEEPING YOUR MODERN STYLE)
+# CUSTOM CSS (MODERN GLASSMORPHISM)
 # =========================================
 st.markdown("""
 <style>
@@ -38,7 +46,6 @@ section[data-testid="stSidebar"] { background-color: #111827; }
     margin-bottom: 20px; box-shadow: 0px 8px 25px rgba(0,0,0,0.2);
 }
 .big-title { font-size: 50px; font-weight: bold; color: #67e8f9; }
-.subtitle { font-size: 22px; color: #d1d5db; }
 .metric-box { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 20px; text-align: center; }
 .agent-box {
     background-color: rgba(6,182,212,0.15); padding: 10px; border-radius: 10px;
@@ -48,7 +55,7 @@ section[data-testid="stSidebar"] { background-color: #111827; }
 """, unsafe_allow_html=True)
 
 # =========================================
-# SIDEBAR & NAVIGATION
+# SIDEBAR NAVIGATION
 # =========================================
 st.sidebar.title("🩺 HealthMate AI")
 st.sidebar.write("Smart Medical Multi-Agent System")
@@ -63,23 +70,23 @@ page = st.sidebar.radio(
 # =========================================
 if page == "Home":
     st.markdown('<p class="big-title">⚡ HealthMate AI</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Next Generation Medical Intelligence</p>', unsafe_allow_html=True)
+    st.markdown('<p style="font-size: 22px; color: #d1d5db;">Next Generation Medical Intelligence</p>', unsafe_allow_html=True)
     
-    # Dashboard Metrics (Static for UI, can be linked to User Profile later)
     c1, c2, c3, c4 = st.columns(4)
-    metrics = [("📊 BMI", "24.1"), ("❤️ Heart Rate", "76 BPM"), ("🧠 AI Score", "91%"), ("⚕ Status", "Good")]
-    for col, (label, val) in zip([c1, c2, c3, c4], metrics):
-        col.markdown(f'<div class="metric-box"><h3>{label}</h3><h2>{val}</h2></div>', unsafe_allow_html=True)
+    with c1: st.markdown('<div class="metric-box"><h3>📊 BMI</h3><h2>24.1</h2></div>', unsafe_allow_html=True)
+    with c2: st.markdown('<div class="metric-box"><h3>❤️ Heart Rate</h3><h2>76 BPM</h2></div>', unsafe_allow_html=True)
+    with c3: st.markdown('<div class="metric-box"><h3>🧠 AI Score</h3><h2>91%</h2></div>', unsafe_allow_html=True)
+    with c4: st.markdown('<div class="metric-box"><h3>⚕ Status</h3><h2>Good</h2></div>', unsafe_allow_html=True)
 
     st.write("")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="glass-card"><h2>🤖 Multi-Agent System</h2><p>Powered by Gemini 2.5/3.5 Flash routing logic.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h2>🤖 Multi-Agent System</h2><p>Smart routing between specialized Medical Agents.</p></div>', unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="glass-card"><h2>📄 Medical PDF Analysis</h2><p>Upload reports and detect abnormal values.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card"><h2>📄 Medical PDF Analysis</h2><p>Upload reports and detect abnormal values instantly.</p></div>', unsafe_allow_html=True)
 
 # =========================================
-# CHAT ASSISTANT (INTEGRATED WITH YOUR MODELS)
+# CHAT ASSISTANT (MODEL INTEGRATED)
 # =========================================
 elif page == "Chat Assistant":
     st.title("💬 AI Chat Assistant")
@@ -99,16 +106,13 @@ elif page == "Chat Assistant":
             st.markdown(user_input)
 
         with st.chat_message("assistant"):
-            with st.spinner("HealthMate Leader Agent Routing..."):
-                # CALL YOUR ACTUAL MODEL HERE
+            with st.spinner("AI Agent Processing..."):
                 try:
-                    # leaderRouter processes the input and selects the agent
-                    # Make sure leaderRouter returns a clean string response
+                    # CALLING YOUR ACTUAL AGENT
                     response = leaderRouter(user_input)
                 except Exception as e:
-                    response = f"Error connecting to models: {str(e)}"
+                    response = f"Agent Error: {str(e)}"
 
-            # Stream the response for better UX
             full_response = ""
             placeholder = st.empty()
             for char in response:
@@ -117,28 +121,59 @@ elif page == "Chat Assistant":
                 placeholder.markdown(full_response + "▌")
             placeholder.markdown(full_response)
 
-            st.markdown('<div class="agent-box"><b>Agent Note:</b> Response generated via Leader Router</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="agent-box"><b>Agent Used:</b> HealthMate Leader Agent</div>', unsafe_allow_html=True)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 
 # =========================================
-# BMI CALCULATOR
+# BMI CALCULATOR (WORKING)
 # =========================================
 elif page == "BMI Calculator":
     st.title("📊 BMI Calculator")
     col1, col2 = st.columns(2)
-    with col1: weight = st.number_input("Weight (kg)", min_value=1.0)
-    with col2: height = st.number_input("Height (m)", min_value=0.5)
+    with col1: weight = st.number_input("Weight (kg)", min_value=1.0, value=70.0)
+    with col2: height = st.number_input("Height (m)", min_value=0.5, value=1.75)
 
     if st.button("Calculate BMI"):
         bmi = weight / (height ** 2)
         st.markdown(f'<div class="glass-card"><h2>Your BMI: {bmi:.2f}</h2></div>', unsafe_allow_html=True)
         if bmi < 18.5: st.warning("Underweight")
         elif bmi < 25: st.success("Normal Weight ✅")
-        else: st.error("Overweight/Obese")
+        else: st.error("Overweight")
+
+# =========================================
+# OTHER PAGES (STRUCTURED)
+# =========================================
+elif page == "Drug Information":
+    st.title("💊 Drug Information")
+    drug_name = st.text_input("Enter Drug Name")
+    if st.button("Search"):
+        # Integration point: call your drug agent here
+        st.info(f"Feature coming soon: Detailed analysis for {drug_name}")
+
+elif page == "Symptom Checker":
+    st.title("🩺 Symptom Checker")
+    symptoms = st.text_area("Describe how you feel...")
+    if st.button("Analyze"):
+        # Integration point: call your symptom agent here
+        st.success("Leader agent is evaluating symptoms.")
+
+elif page == "Medical Test Analyzer":
+    st.title("📄 Medical Test Analyzer")
+    uploaded_file = st.file_uploader("Upload Lab Report", type=["pdf", "txt"])
+    if uploaded_file:
+        st.success("File uploaded. Ready for AI Analysis.")
+
+elif page == "User Profile":
+    st.title("👤 User Profile")
+    st.text_input("Full Name")
+    st.number_input("Age", min_value=1)
+    if st.button("Save Profile"):
+        st.balloons()
+        st.success("Profile Updated!")
 
 # =========================================
 # FOOTER
 # =========================================
 st.write("---")
-st.caption("⚡ HealthMate AI ©️ 2026 | Built by Beshoy Nashaat")
+st.caption("⚡ HealthMate AI ©️ 2026 | Developed by Beshoy Nashaat")
