@@ -1,14 +1,9 @@
 import os
-from dotenv import load_dotenv
+import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-import streamlit as st
-import os
-
-# Option A: The Streamlit Way (Recommended)
-api_key = st.secrets["GOOGLE_API_KEY"]
-
-GEMINI = os.getenv("GEMINI")
+# This line checks Streamlit Secrets first, then falls back to local Env variables
+GEMINI = st.secrets.get("GEMINI") or os.getenv("GEMINI")
 
 leader = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
